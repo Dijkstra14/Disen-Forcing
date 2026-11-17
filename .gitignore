@@ -1,0 +1,10 @@
+wan_models/
+wan_models
+checkpoints/
+checkpoints
+prompts/vidprom_filtered_extended.txt
+prompts
+outputs/
+logs/
+__pycache__/
+*.pyc

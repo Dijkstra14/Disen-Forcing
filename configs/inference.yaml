@@ -1,0 +1,27 @@
+# Inference settings for Disen-Forcing (Wan2.1-T2V-1.3B student).
+# Paths are relative to the repository root.
+wan_model_dir: wan_models
+
+# 4-step sampler
+denoising_step_list: [1000, 750, 500, 250]
+warp_denoising_step: true
+num_frame_per_block: 3          # latent frames per AR chunk
+independent_first_frame: false
+context_noise: 0
+
+model_kwargs:
+  model_name: Wan2.1-T2V-1.3B
+  timestep_shift: 5.0
+  local_attn_size: 9            # attention window in latent frames, sink included
+  sink_size: 3                  # latent frames kept at the start of the KV cache
+
+# Output
+num_output_frames: 21           # latent frames; 21 = 81 video frames (5 s). 126 = 30 s, 252 = 1 min
+num_samples: 1
+seed: 0
+height: 480
+width: 832
+latent_channels: 16
+vae_spatial_stride: 8
+fps: 16
+low_memory_threshold_gb: 40     # below this free VRAM the text encoder is swapped to CPU

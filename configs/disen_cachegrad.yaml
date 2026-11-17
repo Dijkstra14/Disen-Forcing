@@ -1,0 +1,15 @@
+# Training with KV caching gradient: resumes configs/disen.yaml at effective step 200 and trains to step 700 with
+# the KV caching gradient (Self Gradient Forcing). Pass 2 re-runs every chunk teacher-forced on the cached context,
+# so the DMD and regularizer gradients reach the KV cache; this gradient is scaled by cache_grad_scale. Both EMAs
+# continue from the checkpoint (the release EMA starts here, at ema_start_step 200). Everything else as in
+# configs/disen.yaml.
+base: configs/disen.yaml
+resume_from: outputs/disen_200/checkpoint_model_001600/model.pt   # disen.yaml at step 200 (8 GPUs); or --resume
+kv_cache_gradient: true
+# Scales the KV caching gradient down: the cache-writing timestep is trained at every step, while only one of the
+# four denoising timesteps is trained per step. 0 at start_eff, then linear to alpha over warmup_eff.
+cache_grad_scale:
+  alpha: 0.25
+  warmup_eff: 50
+  start_eff: 200
+max_train_steps: 700

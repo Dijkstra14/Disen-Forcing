@@ -1,0 +1,77 @@
+# Disen-Forcing, training without KV caching gradient: DMD distillation of Wan2.1-T2V-1.3B from the Causal Forcing
+# ODE initialisation, with learnable context routing and the attention regularizer (EMA reference) from step 0.
+# 8 GPUs (2 nodes x 4), 700 effective steps. Merged over configs/default_config.yaml. Step counts are effective
+# (optimizer) steps. Paths are relative to the repository root.
+
+wan_model_dir: wan_models
+generator_ckpt: checkpoints/causal_forcing/chunkwise/causal_ode.pt
+data_path: prompts/vidprom_filtered_extended.txt
+resume_from: null
+no_save: false
+
+# models
+real_name: Wan2.1-T2V-14B                # teacher (real score); the critic is Wan2.1-T2V-1.3B
+model_kwargs:
+  timestep_shift: 5.0
+  local_attn_size: 9                     # attention window in latent frames, sink included
+  sink_size: 3                           # latent frames kept at the start of the KV cache
+num_frame_per_block: 3                   # latent frames per autoregressive chunk
+image_or_video_shape: [1, 21, 16, 60, 104]
+gradient_checkpointing: true
+mixed_precision: true
+sharding_strategy: hybrid_full
+generator_fsdp_wrap_strategy: size
+real_score_fsdp_wrap_strategy: size
+fake_score_fsdp_wrap_strategy: size
+text_encoder_fsdp_wrap_strategy: size
+text_encoder_cpu_offload: true
+real_score_cpu_offload: true
+
+# rollout (Self-Forcing, 4 steps)
+denoising_step_list: [1000, 750, 500, 250]
+warp_denoising_step: true                # map the steps through the shifted scheduler
+
+# DMD
+num_train_timestep: 1000
+timestep_shift: 5.0
+guidance_scale: 3.0
+denoising_loss_type: flow
+negative_prompt: 色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走
+
+# learnable context routing (sink gate logit b_h = log g_h per head and layer)
+sink_gate:
+  anchor_json: configs/anchors/anchor_cf_ode_p80.json   # heads that start fully open (b = 0)
+  b0: -2.0                               # initial b of all other heads
+  lr: 0.05
+  betas: [0.9, 0.999]
+  eps: 1.0e-10
+  weight_decay: 0.0
+  log_every: 50                          # write sink_gates.jsonl every N effective steps
+
+# attention regularizer: KL(EMA reference || student) of the cross-frame attention maps
+reg_weight: 0.00036                      # lambda_reg
+reg:
+  probe_layer: 26                        # layer whose attention maps are regularized
+  wt_fixed:                              # w(t) per denoising step
+    "1000.0": 1.0
+    "937.5": 1.0
+    "833.3": 1.0
+    "625.0": 0.0
+
+# optimisation
+seed: 42
+batch_size: 1                            # per GPU and micro-step
+gradient_accumulation_steps: 8           # 8 GPUs x 8 micro-steps = 64 samples per optimizer step
+lr: 2.0e-06
+lr_critic: 4.0e-07
+beta1: 0.0
+beta2: 0.999
+beta1_critic: 0.0
+beta2_critic: 0.999
+max_grad_norm_generator: 10.0
+max_grad_norm_critic: 10.0
+dfake_gen_update_ratio: 5                # one generator update every 5 critic updates
+max_train_steps: 700
+ema_weight: 0.99                         # decay of the reference EMA and of the release EMA
+ema_start_step: 200                      # release EMA (generator_ema) starts here
+log_iters: 50                            # checkpoint interval
