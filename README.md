@@ -18,7 +18,7 @@ Long autoregressive video rollouts tend to drift. A popular fix, borrowed from s
 
 Why? In LLMs, the initial tokens act as an [attention sink](https://arxiv.org/abs/2309.17453) that attracts attention in most heads. In autoregressive video diffusion models, by contrast, our analysis shows that long-range consistency is carried by only a small subset of initial-frame-focused anchor heads, while most heads predominantly capture local temporal dynamics. Yet the frame sink exposes every head to the initial frames, and this over-conditioning drives the motion collapse by holding the video close to the initial frames.
 
-<p align="center"><img src="figures/head_attention.png" width="100%"></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="figures/head_attention_dark.png"><img src="figures/head_attention.png" width="100%"></picture></p>
 
 *Attention pattern of AR-VDMs. Most heads attend to the current frame; only a few attend to the initial frame.*
 
@@ -127,7 +127,7 @@ python tools/visualize_heads.py grid --maps anchor_scores/my_model/attn_maps.npz
 
 Then set `sink_gate.anchor_json` in the training config to the new file.
 
-<p align="center"><img src="figures/anchor_heads.png" width="100%"></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="figures/anchor_heads_dark.png"><img src="figures/anchor_heads.png" width="100%"></picture></p>
 
 *Chunk-level attention of representative Self-Forcing heads (rows: query chunk, columns: key chunk). Most heads (blue) attend locally; anchor heads (red) keep attending to the initial frames.*
 
