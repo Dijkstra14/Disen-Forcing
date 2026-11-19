@@ -18,9 +18,9 @@ Long autoregressive video rollouts tend to drift. A popular fix, borrowed from s
 
 Why? In LLMs, the initial tokens act as an [attention sink](https://arxiv.org/abs/2309.17453) that attracts attention in most heads. In autoregressive video diffusion models, by contrast, our analysis shows that long-range consistency is carried by only a small subset of initial-frame-focused anchor heads, while most heads predominantly capture local temporal dynamics. Yet the frame sink exposes every head to the initial frames, and this over-conditioning drives the motion collapse by holding the video close to the initial frames.
 
-<p align="center"><img src="figures/head_attention.png#gh-light-mode-only" width="100%"><img src="figures/head_attention_dark.png#gh-dark-mode-only" width="100%"></p>
+<p align="center"><img src="figures/sink_comparison.png#gh-light-mode-only" width="100%"><img src="figures/sink_comparison_dark.png#gh-dark-mode-only" width="100%"></p>
 
-*Attention pattern of AR-VDMs. Most heads attend to the current frame; only a few attend to the initial frame.*
+*Attention to the first token in LLMs vs. the initial frame in AR-VDMs. In LLMs most heads attend to it; in AR-VDMs only a few heads do.*
 
 **Disen-Forcing** routes the persistent initial-frame context only to the anchor heads, and regularizes motion to be invariant to the initial-frame context. This improves long-horizon consistency and motion dynamics together.
 
