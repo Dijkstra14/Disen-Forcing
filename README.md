@@ -12,7 +12,7 @@
 
 </div>
 
-https://github.com/user-attachments/assets/ded77142-a01c-4d2e-8012-95e9cac72b64
+https://github.com/user-attachments/assets/d9b2872e-d93b-449b-8431-7659fc46a9e6
 
 Long autoregressive video rollouts tend to drift. A popular fix, borrowed from streaming LLMs, is the [frame sink](https://arxiv.org/abs/2509.22622): keep the initial-frame tokens in the KV cache for the whole rollout, so every new chunk can look back at them. This keeps appearance stable, but we find that during distillation it tends to pull motion toward low-dynamic modes.
 
@@ -22,7 +22,7 @@ Why? In LLMs, the initial tokens act as an [attention sink](https://arxiv.org/ab
 
 *Attention pattern of AR-VDMs. Most heads attend to the current frame; only a few attend to the initial frame.*
 
-The idea behind **Disen-Forcing** is simple: route the persistent initial-frame context only to the anchor heads, and regularize motion to be invariant to the initial-frame context. This improves long-horizon consistency and motion dynamics together.
+**Disen-Forcing** routes the persistent initial-frame context only to the anchor heads, and regularizes motion to be invariant to the initial-frame context. This improves long-horizon consistency and motion dynamics together.
 
 This repository contains the training and inference code for Disen-Forcing on Wan2.1-T2V-1.3B.
 
